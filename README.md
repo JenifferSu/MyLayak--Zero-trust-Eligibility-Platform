@@ -112,6 +112,7 @@ Install dependencies:
 
 
 npm i
+
 Start development server:
 npm run dev
 
