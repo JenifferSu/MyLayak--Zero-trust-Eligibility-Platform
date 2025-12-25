@@ -172,8 +172,9 @@ because the scanner is different
 now the issue is ik upload image confirm can work, but idk scan this can work or not (idh cam)
 
 ## 3 QUANTUM 
-currently using bb84
-Note!!!
+Currently using bb84
+
+<Note>
 It is not that ‘quantum is more secure than AES/RSA/ECC’
 but rather that ‘quantum enables --> key theft to be detected, prevented, and cannot be retroactively traced’
 
