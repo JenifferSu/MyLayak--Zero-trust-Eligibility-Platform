@@ -26,9 +26,6 @@ It consolidates verified eligibility attributes such as **B40**, **student**, **
 
 **No applications. No repeated uploads. No fraud.**
 
-**MyLayak makes benefits find the people — securely, instantly, and for everyone.**
-
-
 **MYLAYAK makes benefits find the people securely, instantly, and for everyone.**
 
 ---
