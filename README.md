@@ -176,12 +176,12 @@ now the issue is ik upload image confirm can work, but idk scan this can work or
 
 ## 3 QUANTUM 
 currently using bb84
-注意!!! 
-不是"量子比 AES/RSA/ECC 更安全"
-而是"量子让 --> 偷密钥 这件事可被发现、可被拒绝、不可事后回溯"
+Note!!!
+It is not that ‘quantum is more secure than AES/RSA/ECC’
+but rather that ‘quantum enables --> key theft to be detected, prevented, and cannot be retroactively traced’
 
-QKD 不依赖"算不出来"
-QKD 依赖"不能被观察而不留下痕迹"
+QKD does not rely on ‘being uncomputable’
+QKD relies on ‘not being observable without leaving a trace’
 
 Explanation of record now, decrypt later 
 attackers can store encrypted traffic today and decrypt it years later when stronger computers (especially quantum computers) become available.
