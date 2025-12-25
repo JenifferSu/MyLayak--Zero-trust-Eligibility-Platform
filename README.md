@@ -43,7 +43,7 @@ https://drive.google.com/file/d/1uo1dbaDWmi28-qSwRvH4JtfDcJp1P7rc/view?usp=shari
 ---
 
 # ✨ Backend Link
-(https://github.com/saladbkp/My-layak-backend)
+https://github.com/saladbkp/My-layak-backend
 
 ---
 
