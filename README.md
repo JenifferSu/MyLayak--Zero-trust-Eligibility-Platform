@@ -111,7 +111,112 @@ Start development server:
 npm run dev
 
 ---
+# Backend
 
+## 1 TOKEN -> SET with JWT TOKEN with key 
+```
+const SECRET_KEY = "my-layak-secret-key-very-secure";
+
+const payload = {
+	sub: hashedID,
+	attributes: {
+		category: category,
+		is_student: citizenData.employment_status === 'Student',
+		has_dependents: citizenData.dependents > 0
+	},
+	nonce: crypto.randomBytes(16).toString('hex'),
+	iat: Date.now(),
+	exp: Date.now() + (1000 * 60 * 60) // 1 hour validity
+};
+```
+SPECIAL obfuscation + deobfuscate
+XOR first 2 with sign + ROT13 
+so eyJhbGciOiJIUzI1NiIs -> ZGpFYPjZRyx1WUkxNOy5
+
+DOUBLE LAYER -> KEY STORED IN BACKEND + OBFUSCATE JWT PATTERN
+
+## 2 QR STEGA SCANNER  
+```
+const payload = qr.data;
+visible payload: DIGITALID:SESSION=ABC123
+
+const ts = bitsToInt(bits.slice(0, 32));
+const tag = bitsToInt(bits.slice(32));
+SECRET = CHANGE_ME_SECRET
+const expected = hmac32(SECRET, `${payload}|${ts}`);
+
+TAG MUST == expected
+```
+WHAT THE DIFF? HOW TO STEGA INSIDE?
+
+QR CODE have its own Error-Correction Area
+design to be fault tolerant 
+- You **intentionally choose specific QR squares** that:
+    - Do **not affect normal scanning**
+    - Are normally ignored by standard scanners
+- You use these squares to:
+    - Represent **0s and 1s**
+    - Encode a **timestamp + cryptographic fingerprint**
+
+- 👀 **Humans cannot see the difference**
+- 📱 **Normal QR scanners do not detect it**
+
+attack even generate the qr code by the visible payload also cannot regenerate it 
+because the scanner is different 
+<img width="591" height="577" alt="image" src="https://github.com/user-attachments/assets/d99f1448-9a4d-4509-bdd0-cbae58e2400d" />
+
+
+now the issue is ik upload image confirm can work, but idk scan this can work or not (idh cam)
+
+## 3 QUANTUM 
+currently using bb84
+注意!!! 
+不是"量子比 AES/RSA/ECC 更安全"
+而是"量子让 --> 偷密钥 这件事可被发现、可被拒绝、不可事后回溯"
+
+QKD 不依赖"算不出来"
+QKD 依赖"不能被观察而不留下痕迹"
+
+Explanation of record now, decrypt later 
+attackers can store encrypted traffic today and decrypt it years later when stronger computers (especially quantum computers) become available.
+QKD prevents this by making the encryption keys unavailable forever, even in the future.
+
+THIS IS NORMAL CASE 
+```
+PS C:\Users\Asus\Desktop\MyLayak> node .\test\bb84.js
+=== BB84 QKD Simulation (JS) ===
+N qubits sent:               2000
+Eve enabled:                false
+Eve intercept rate:         1
+Sifted bits (basis match):  992
+Sampled for QBER check:     198
+Sample errors:              0
+QBER (error rate):          0.00%
+QBER threshold:             11.00%
+Detected eavesdropping?:    NO (OK)
+Raw key bits left:          794
+Final key (PA, hex):        a6caeb34829596c40b0f7a2bc965ed4a
+```
+
+THIS IS ATTACKER CASE
+```
+PS C:\Users\Asus\Desktop\MyLayak> node .\test\bb84.js
+=== BB84 QKD Simulation (JS) ===
+N qubits sent:               2000
+Eve enabled:                true
+Eve intercept rate:         1
+Eve intercepted count:      2000
+Sifted bits (basis match):  977
+Sampled for QBER check:     195
+Sample errors:              51
+QBER (error rate):          26.15%
+QBER threshold:             11.00%
+Detected eavesdropping?:    YES (ABORT)
+Raw key bits left:          782
+Final key (PA, hex):        e880ed40b1c8591fe2083eb65d4b81e9
+```
+
+---
 # 📘 License
 MIT License.
 
