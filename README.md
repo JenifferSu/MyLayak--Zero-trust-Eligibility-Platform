@@ -34,11 +34,6 @@ https://drive.google.com/file/d/1uo1dbaDWmi28-qSwRvH4JtfDcJp1P7rc/view?usp=shari
 
 ---
 
-# ✨ Prototype Link
-[https://drive.google.com/file/d/1QCTIazM7nm3ti-F-MBouihEPaNxLo0eW/view?usp=sharing](https://www.figma.com/make/CgL8fGinH1rMeIDd1dthQV/Government-Digital-Service-Kiosk?node-id=0-1&p=f)
-
----
-
 # ✨ Backend Link
 https://github.com/saladbkp/My-layak-backend
 
