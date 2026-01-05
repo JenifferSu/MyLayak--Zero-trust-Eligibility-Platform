@@ -1,13 +1,119 @@
 
-  import { defineConfig } from 'vite';
-  import react from '@vitejs/plugin-react-swc';
-  import path from 'path';
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react-swc';
+import path from 'path';
+import { spawn } from 'child_process';
 
-  export default defineConfig({
-    plugins: [react()],
-    resolve: {
-      extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
-      alias: {
+export default defineConfig({
+  plugins: [
+    react(),
+    {
+      name: 'mykad-runner',
+      configureServer(server) {
+        server.middlewares.use('/run/read-mykad', async (req, res) => {
+          const scriptPath = path.resolve(__dirname, './src/backend/read_mykad.py');
+          const pythonCmd = 'python';
+          const child = spawn(pythonCmd, [scriptPath, '--json'], {
+            cwd: path.resolve(__dirname),
+          });
+          let out = '';
+          let err = '';
+          child.stdout.on('data', (d) => (out += d.toString()));
+          child.stderr.on('data', (d) => (err += d.toString()));
+          child.on('close', (code) => {
+            if (code !== 0) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ error: err || 'Failed to run Python script' }));
+            } else {
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              try {
+                JSON.parse(out);
+                res.end(out);
+              } catch {
+                res.end(JSON.stringify({ error: 'Invalid JSON output', raw: out }));
+              }
+            }
+          });
+        });
+
+        // New endpoint for QKD Demo (Generate + Verify Token)
+        server.middlewares.use('/run/qkd-demo', async (req, res) => {
+          const genScript = path.resolve(__dirname, './src/backend/generate-token.js');
+          const verScript = path.resolve(__dirname, './src/backend/verify-token.js');
+          
+          let fullLog = "";
+          
+          // 1. Run generate-token.js
+          const genChild = spawn('node', [genScript], { cwd: path.resolve(__dirname) });
+          
+          let genOut = "";
+          let genErr = "";
+          
+          genChild.stdout.on('data', (d) => {
+             const s = d.toString();
+             genOut += s;
+             fullLog += s;
+          });
+          genChild.stderr.on('data', (d) => {
+             const s = d.toString();
+             genErr += s;
+             fullLog += s;
+          });
+          
+          genChild.on('close', (code) => {
+            if (code !== 0) {
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ output: fullLog, error: genErr || 'Generate token failed' }));
+              return;
+            }
+            
+            // Extract Token and Key
+            // Regex based on generate-token.js output format
+            // ...
+            // console.log("FINAL GENERATED TOKEN (Copy this for verification):");
+            // console.log("==================================================");
+            // console.log(obfuscatedToken);
+            // ...
+            // console.log(`Key: ${SECRET_KEY}`);
+            
+            const tokenMatch = genOut.match(/FINAL GENERATED TOKEN \(Copy this for verification\):\s*=+\s*([\s\S]*?)\s*=+/);
+            const keyMatch = genOut.match(/Key:\s*([a-f0-9]+)/i);
+            
+            if (!tokenMatch || !keyMatch) {
+               fullLog += "\n[ERROR] Could not parse Token or Key from output.\n";
+               res.statusCode = 200; 
+               res.setHeader('Content-Type', 'application/json');
+               res.end(JSON.stringify({ output: fullLog }));
+               return;
+            }
+            
+            const token = tokenMatch[1].trim();
+            const key = keyMatch[1].trim();
+            
+            fullLog += "\n\n=== AUTOMATED VERIFICATION ===\n";
+            
+            // 2. Run verify-token.js
+            const verChild = spawn('node', [verScript, token, key], { cwd: path.resolve(__dirname) });
+            
+            verChild.stdout.on('data', (d) => fullLog += d.toString());
+            verChild.stderr.on('data', (d) => fullLog += d.toString());
+            
+            verChild.on('close', () => {
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ output: fullLog }));
+            });
+          });
+        });
+      },
+    },
+  ],
+  resolve: {
+    extensions: ['.js', '.jsx', '.ts', '.tsx', '.json'],
+    alias: {
         'vaul@1.1.2': 'vaul',
         'sonner@2.0.3': 'sonner',
         'recharts@2.15.2': 'recharts',
@@ -50,14 +156,14 @@
         '@radix-ui/react-alert-dialog@1.1.6': '@radix-ui/react-alert-dialog',
         '@radix-ui/react-accordion@1.2.3': '@radix-ui/react-accordion',
         '@': path.resolve(__dirname, './src'),
-      },
     },
-    build: {
-      target: 'esnext',
-      outDir: 'build',
-    },
-    server: {
-      port: 3000,
-      open: true,
-    },
-  });
+  },
+  build: {
+    target: 'esnext',
+    outDir: 'build',
+  },
+  server: {
+    port: 3000,
+    open: true,
+  },
+});

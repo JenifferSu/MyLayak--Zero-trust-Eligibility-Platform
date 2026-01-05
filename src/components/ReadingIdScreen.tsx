@@ -1,24 +1,43 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { CreditCard, QrCode, CheckCircle, AlertTriangle } from 'lucide-react';
-import type { LoginMethod } from '../App';
+import type { LoginMethod, MyKadData } from '../App';
 
 interface ReadingIdScreenProps {
   loginMethod: LoginMethod;
-  onComplete: () => void;
+  onComplete: (data?: MyKadData) => void;
 }
 
 type QRScanState = 'idle' | 'scanning' | 'valid' | 'invalid';
 
 export function ReadingIdScreen({ loginMethod, onComplete }: ReadingIdScreenProps) {
   const [qrScanState, setQrScanState] = useState<QRScanState>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const hasFetched = useRef(false);
 
   useEffect(() => {
     if (loginMethod === 'mykad') {
-      // MyKad flow - simple 2 second delay
-      const timer = setTimeout(() => {
-        onComplete();
-      }, 2000);
-      return () => clearTimeout(timer);
+      if (hasFetched.current) return;
+      hasFetched.current = true;
+
+      const fetchData = async () => {
+        try {
+          const response = await fetch('/run/read-mykad');
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || 'Failed to read MyKad data');
+          }
+          const jsonData = await response.json();
+          // Small delay to let user see the "Reading..." animation
+          setTimeout(() => {
+            onComplete(jsonData);
+          }, 1000);
+        } catch (err: any) {
+          console.error("MyKad fetch error:", err);
+          setError(err.message || "Could not read MyKad. Please try again.");
+        }
+      };
+
+      fetchData();
     } else if (loginMethod === 'qr') {
       // QR Code flow - multi-step process
       // Step 1: Idle - "Scan your Digital ID" (1 second)
@@ -80,6 +99,25 @@ export function ReadingIdScreen({ loginMethod, onComplete }: ReadingIdScreenProp
 
   // For MyKad flow
   if (loginMethod === 'mykad') {
+    if (error) {
+      return (
+        <div className="flex min-h-screen items-center justify-center p-12">
+          <div className="w-full max-w-2xl text-center">
+            <div className="rounded-3xl border border-red-500/30 bg-red-900/20 p-12 shadow-2xl backdrop-blur-xl">
+              <h2 className="mb-4 text-2xl font-bold text-white">Reading Failed</h2>
+              <p className="mb-8 text-white/80">{error}</p>
+              <button 
+                onClick={() => window.location.reload()}
+                className="rounded-xl bg-white/10 px-8 py-3 text-white hover:bg-white/20 transition-colors"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="flex min-h-screen items-center justify-center p-12">
         <div className="w-full max-w-2xl">

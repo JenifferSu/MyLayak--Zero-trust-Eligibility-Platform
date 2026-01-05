@@ -3,6 +3,8 @@ import { WelcomeScreen } from './components/WelcomeScreen';
 import { ReadingIdScreen } from './components/ReadingIdScreen';
 import { VerificationScreen } from './components/VerificationScreen';
 import { IdentityVerifiedScreen } from './components/IdentityVerifiedScreen';
+import { MyKadDetails } from './components/MyKadDetails';
+import {QRScannerScreen} from './components/QRScannerScreen';
 import { EligibilityWallet } from './components/EligibilityWallet';
 import { StudentDetailScreen } from './components/StudentDetailScreen';
 import { B40DetailScreen } from './components/B40DetailScreen';
@@ -44,9 +46,11 @@ import backgroundImage from 'figma:asset/df2f6be404215777d6a9ff32bce3eee7cf6f305
 
 export type Screen = 
   | 'welcome'
+  | 'qr-scanner'
   | 'reading-id'
   | 'verification'
   | 'identity-verified'
+  | 'mykad-details'
   | 'eligibility-wallet'
   | 'student-detail'
   | 'b40-detail'
@@ -87,6 +91,26 @@ export type Screen =
 
 export type LoginMethod = 'mykad' | 'qr' | null;
 
+export interface MyKadData {
+  IC: string;
+  Name: string;
+  Sex: string;
+  OldIC: string;
+  BirthDate: string;
+  BirthPlace: string;
+  IssueDate: string;
+  Citizenship: string;
+  Race: string;
+  Religion: string;
+  Address1: string;
+  Address2: string;
+  Address3: string;
+  Postcode: string;
+  City: string;
+  State: string;
+  PhotoDataUrl: string;
+}
+
 export interface Service {
   id: string;
   title: string;
@@ -101,16 +125,22 @@ export default function App() {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>(null);
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [referenceId, setReferenceId] = useState<string>('');
+  const [myKadData, setMyKadData] = useState<MyKadData | null>(null);
 
   const handleLogout = () => {
     setCurrentScreen('welcome');
     setLoginMethod(null);
     setSelectedService(null);
+    setMyKadData(null);
   };
 
   const handleLoginStart = (method: LoginMethod) => {
     setLoginMethod(method);
-    setCurrentScreen('reading-id');
+    if (method === 'qr') {
+      setCurrentScreen('qr-scanner');
+    } else {
+      setCurrentScreen('reading-id');
+    }
   };
 
   const handleScreenChange = (screen: Screen) => {
@@ -142,7 +172,10 @@ export default function App() {
       case 'reading-id':
         return <ReadingIdScreen 
           loginMethod={loginMethod} 
-          onComplete={() => {
+          onComplete={(data) => {
+            if (data) {
+              setMyKadData(data);
+            }
             // Skip verification screen for QR code since it already shows "Authentic ID Verified"
             if (loginMethod === 'qr') {
               handleScreenChange('identity-verified');
@@ -157,7 +190,17 @@ export default function App() {
         />;
       case 'identity-verified':
         return <IdentityVerifiedScreen 
+          onContinue={() => handleScreenChange('mykad-details')} 
+        />;
+      case 'mykad-details':
+        return <MyKadDetails 
+          data={myKadData}
           onContinue={() => handleScreenChange('eligibility-wallet')} 
+        />;
+      case 'qr-scanner':
+        return <QRScannerScreen 
+          onBack={() => handleScreenChange('welcome')}
+          onValid={() => handleScreenChange('eligibility-wallet')} 
         />;
       case 'eligibility-wallet':
         return <EligibilityWallet 
