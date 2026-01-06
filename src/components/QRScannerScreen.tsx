@@ -333,7 +333,7 @@ export function QRScannerScreen({ onBack, onValid }: QRScannerScreenProps) {
             <button
               onClick={handleContinue}
               disabled={isGenerating}
-              className="h-14 rounded-xl bg-amber-400 px-10 text-blue-900 transition-all duration-300 hover:scale-105 hover:bg-amber-300 hover:shadow-2xl text-[18px] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+              className="h-14 rounded-xl bg-amber-400 px-16 text-blue-900 transition-all duration-300 hover:scale-105 hover:bg-amber-300 hover:shadow-2xl text-[18px] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
               {isGenerating ? (
                 <div className="flex items-center gap-2">
@@ -347,7 +347,7 @@ export function QRScannerScreen({ onBack, onValid }: QRScannerScreenProps) {
           )}
           <button
             onClick={() => window.location.reload()}
-            className="h-14 rounded-xl bg-white/10 px-10 text-white border border-white/20 transition-all duration-300 hover:bg-white/20 text-[18px]"
+            className="h-14 rounded-xl bg-white/10 px-16 text-white border border-white/20 transition-all duration-300 hover:bg-white/20 text-[18px]"
           >
             Retry
           </button>
